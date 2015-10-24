@@ -1,5 +1,13 @@
-exports.helloworld = function (io) {
-	io.end({msg:'Hello Client!'});
+exports.helloserver = function (io) {
+	io.end('Hello Client!');	// text: Hello Client!
+};
+
+exports.hellojson = function (io) {
+	io.end({json:true});		// json: {"json":true}
+};
+
+exports.helloerror = function (io) {
+	io.err('Don\'t panic!');
 };
 
 exports.push = function(io, id, evt, str) {
@@ -13,19 +21,11 @@ exports.broadcast = function(io, evt, str) {
 };
 
 exports.pushjson = function(io, id, evt, obj) {
-	try {
-		io.push(id, evt, obj);
-	} catch (e) {
-	}
-
+	io.push(id, evt, obj);
 	io.end();
 };
 
 exports.broadcastjson = function(io, evt, obj) {
-	try {
-		io.broadcast(evt, obj);
-	} catch (e) {
-	}
-
+	io.broadcast(evt, obj);
 	io.end();
 };
