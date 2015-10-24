@@ -13,7 +13,7 @@ exports.register = function (io, udid){
 		if (exists) {
 			io.err('udid_exists');
 		} else {
-			io.hincrby('type->count', 'id', function(uid) {
+			io.hincrby('type->count', 'id', 1, function(uid) {
 				var ids = {udid:udid};
 				io.hset('udid->uid', udid, uid);
 				io.hset('uid->ids', uid, JSON.stringify(ids));
