@@ -1,5 +1,5 @@
 var db = require('redis').createClient();
-var IO = require('./io');
+var IO = require('../lib/io');
 var io = new IO([db], 1, console.log, console.log);
 io.hset('htest.sub','a',50);
 io.hset('htest.sub','b',60);
