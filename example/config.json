@@ -1,0 +1,14 @@
+{
+	"auth":{
+		"appkey":"testkey",
+		"skip_list":[
+			"/^(GET|POST)$/","/user/.+",
+			"/^(GET|POST)$/","/help/.+",
+			"/^(GET|POST)$/","/test/.+",
+			"/^(GET|POST)$/","/event/.+"
+		]
+	},
+	"redis":[
+		"localhost:6379"
+	]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "node-mf",
+  "version": "0.0.1",
+  "description": "Minimum node & redis server framework",
+  "main": "example/server.js",
+  "directories": {
+    "example": "example",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd example; node server.js 8030"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://he110world@bitbucket.org/he110world/node-mf.git"
+  },
+  "keywords": [
+    "node",
+    "redis",
+    "framework"
+  ],
+  "author": "he110world",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/he110world/node-mf#readme",
+  "dependencies": {
+    "jsonwebtoken": "^5.4.0",
+    "node-internal-pubsub": "^1.0.1",
+    "redis": "^2.2.5"
+  }
+}
