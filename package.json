@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "cd example; node server.js 8030"
+    "start": "cd example; nodemon -w ../ server.js 8030"
   },
   "repository": {
     "type": "git",

@@ -11,7 +11,7 @@ exports.login = function (io, udid){
 exports.register = function (io, udid){
 	io.hexists('udid->uid', udid, function(exists) {
 		if (exists) {
-			io.err('udid_exists');
+			io.err('existing_udid');
 		} else {
 			io.hincrby('type->count', 'id', 1, function(uid) {
 				var ids = {udid:udid};
