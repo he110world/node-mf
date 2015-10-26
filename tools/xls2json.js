@@ -1,14 +1,15 @@
 var args = process.argv.slice(2);
 var file = args[0];
 if (!file) {
-	console.log('Usage: node xls2json.js <table-file>.xls* --skip <col-to-skip> <col-to-skip>');
+	console.log('Usage: node xls2json.js <table-file>.xls* <start-line(start from 0)> --skip <col-to-skip> <col-to-skip>');
 	process.exit();
 }
 
 var skips = [];
 var keeps = [];
 var state = '';
-for (var i=1; i<args.length; i++) {
+var startLine = Number(args[1]) || 0;
+for (var i=2; i<args.length; i++) {
 	if (args[i] == '--skip' || args[i] == '-s') {
 		state = 'skip';
 		continue;
@@ -50,13 +51,13 @@ for (var i in obj) {
 		// }
 		// line 2 is column name
 		var exp = {};
-		var columns = sheet.data[2];
-		var numrows = sheet.data.length - 3;
+		var columns = sheet.data[startLine];
+		var numrows = sheet.data.length - (startLine+1);
 		for (var j in columns) {
 			var col = columns[j];
 			var vals = [0];	// exp ID starts from 1
 			for (var k=0; k<numrows; k++) {
-				var val = sheet.data[k+3][j];
+				var val = sheet.data[k+(startLine+1)][j];
 				if (k>0 && val==0) {	// first data row can contain 0's
 					break;
 				}
@@ -79,7 +80,7 @@ for (var i in obj) {
 		// }
 		// line 2 is column name
 		// find ID column
-		var colnames = sheet.data[2];
+		var colnames = sheet.data[startLine];
 		var IDcol = 0;
 		for (var j in colnames) {
 			if (colnames[j] == 'ID') {
@@ -88,7 +89,7 @@ for (var i in obj) {
 			}
 		}
 		var data = {};
-		for (var j=3; j<sheet.data.length; j++) {
+		for (var j=startLine+1; j<sheet.data.length; j++) {
 			var ID = sheet.data[j][IDcol];
 			var onedata = {};
 			for (var k in colnames) {
