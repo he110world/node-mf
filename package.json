@@ -26,6 +26,7 @@
   "dependencies": {
     "jsonwebtoken": "^5.4.0",
     "node-internal-pubsub": "^1.0.1",
+    "node-xlsx": "^0.6.0",
     "redis": "^2.2.5"
   }
 }
