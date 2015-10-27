@@ -29,3 +29,10 @@ exports.broadcastjson = function(io, evt, obj) {
 	io.broadcast(evt, obj);
 	io.end();
 };
+
+exports.addCoin = function(io, add){
+	io.hincrby('role', 'coin', add, function(coin){
+		//io.hset('role', 'coin', coin);
+		io.end();
+	});
+};

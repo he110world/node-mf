@@ -2,6 +2,7 @@ share = require('../../lib/share')
 Class = require('../class');
 
 exports.login = function (io, udid){
+	console.log('login udid:',udid)
 	io.hget('udid->uid', udid, function(uid){
 		if (uid) {
 			io.end(io.login(uid));
@@ -23,7 +24,7 @@ exports.register = function (io, udid){
 				
 				io.id = uid;
 				var role = new Class.Role(uid);
-				role.addCoin(100);
+				//role.addCoin(100);
 				io.hmset('role', role);
 
 				io.end();
@@ -45,9 +46,12 @@ exports.clear = function (io, udid) {
 	});
 };
 
-exports.view = function (io, keys) {
-	var keysArr = keys.split('$');
-	console.log(keysArr);
+exports.view = function (io) {
+	var keysArr = [];
+	for (var i=1; i<arguments.length; i++) {
+		keysArr.push(arguments[i]);
+	}
+	
 	var processed = 0;
 	var keyType = {};
 	keysArr.forEach(function(key, i){
@@ -74,9 +78,7 @@ exports.view = function (io, keys) {
 			}
 			++processed;
 			if(processed == keysArr.length){
-				io.get('end', function(){
-					io.end();
-				});
+				io.end();
 			}
 		});
 	});
