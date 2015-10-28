@@ -1,5 +1,5 @@
-share = require('../../lib/share')
-Class = require('../class');
+var share = require('../../lib/share')
+var Class = require('../class');
 
 exports.login = function (io, udid){
 	console.log('login udid:',udid)
@@ -41,6 +41,7 @@ exports.clear = function (io, udid) {
 
 			io.id = uid;
 			io.del('role');
+			io.del('item');
 			io.end();
 		} else {
 			io.err('invalid_udid');
