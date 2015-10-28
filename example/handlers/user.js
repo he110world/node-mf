@@ -38,6 +38,8 @@ exports.clear = function (io, udid) {
 		if (uid) {
 			io.hdel('udid->uid', udid);
 			io.hdel('uid->ids', uid);
+
+			io.id = uid;
 			io.del('role');
 			io.end();
 		} else {

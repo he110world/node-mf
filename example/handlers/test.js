@@ -1,4 +1,5 @@
 var web = require('../../lib/web');
+var sd  =require('../staticData.json');
 
 exports.helloserver = function (io) {
 	io.end('Hello Client!');	// text: Hello Client!
@@ -34,6 +35,25 @@ exports.broadcastjson = function(io, evt, obj) {
 
 exports.addCoin = function(io, add){
 	io.hincrby('role', 'coin', add, function(coin){
+		//io.hset('role', 'coin', coin);
+		io.end();
+	});
+};
+exports.addMoney = function(io, add){
+	io.hincrby('role', 'money', add, function(coin){
+		//io.hset('role', 'coin', coin);
+		io.end();
+	});
+};
+exports.addExp = function(io, add){
+	io.hincrby('role', 'exp', add, function(coin){
+		//io.hset('role', 'coin', coin);
+		io.end();
+	});
+};
+
+exports.addRandom = function(io, add){
+	io.hincrby('role', 'exp', add, function(coin){
 		//io.hset('role', 'coin', coin);
 		io.end();
 	});
