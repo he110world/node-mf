@@ -18,9 +18,14 @@ exports.expandBag = function(io){
 					if(err){
 						io.err(data);
 					}else{
-						io.hincrby('item', 11000, -cost);
+
+						if(itemCnt - cost <= 0){
+							io.hdel('item', 11000);
+						}else{
+							io.hincrby('item', 11000, -cost);
+						}
 						io.hincrby('role', 'bagUsed', data);
-						
+
 						io.hincrby('role', 'bagSize', 1);
 						
 						io.end();

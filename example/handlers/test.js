@@ -2,6 +2,7 @@ var web = require('../../lib/web');
 var share = require('../../lib/share')
 var sd  =require('../staticData.json');
 var Class = require('../class');
+var item = require('./item');
 
 exports.helloserver = function (io) {
 	io.end('Hello Client!');	// text: Hello Client!
@@ -35,16 +36,13 @@ exports.broadcastjson = function(io, evt, obj) {
 	io.end();
 };
 
-exports.addCoin = function(io, cnt){
+exports.addCoin = function(io, addNum){
 	var itemId = 11001
-	var itemSD = sd.item[itemId];
-	if(itemSD === undefined){
-		io.err('no_this_item');
-		return;
-	}
 	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
-		var item = new Class.Item(itemSD, itemCnt);
-		item.add(cnt, usedAndSize[0], usedAndSize[1], function(err, addBagUsed){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+
+		item.addItem(addNum, function(err, addBagUsed){
 			if(err){
 				io.err("bag_limit");
 			}else{
@@ -55,17 +53,13 @@ exports.addCoin = function(io, cnt){
 		});
 	});
 };
-exports.addMoney = function(io, cnt){
+exports.addMoney = function(io, addNum){
 	var itemId = 11000
-	var itemSD = sd.item[itemId];
-	if(itemSD === undefined){
-		io.err('no_this_item');
-		return;
-	}
 
 	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
-		var item = new Class.Item(itemSD, itemCnt);
-		item.add(cnt, usedAndSize[0], usedAndSize[1], function(err, addBagUsed){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.addItem(addNum, function(err, addBagUsed){
 			if(err){
 				io.err("bag_limit");
 			}else{
@@ -86,18 +80,13 @@ exports.addExp = function(io, add){
 exports.addRandomItem = function(io){
 	var length = share.length(sd.item);
 	var itemId = 11000 + share.rand(2, length - 1);
-	var itemSD = sd.item[itemId];
-	if(itemSD === undefined){
-		io.err('no_this_item');
-		return;
-	}
-
-	var limit = itemSD.Limit;
-	var cnt = share.rand(1, limit);
+	var cnt = share.rand(1, 999);
 
 	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
-		var item = new Class.Item(itemSD, itemCnt);
-		item.add(cnt, usedAndSize[0], usedAndSize[1], function(err, addBagUsed){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+
+		item.addItem(cnt, function(err, addBagUsed){
 			if(err){
 				io.err("bag_limit");
 			}else{
@@ -109,16 +98,11 @@ exports.addRandomItem = function(io){
 	});
 };
 
-exports.addItem = function(io, itemId, cnt){
-	var itemSD = sd.item[itemId];
-	if(itemSD === undefined){
-		io.err('no_this_item');
-		return;
-	}
-
+exports.addItem = function(io, itemId, addNum){
 	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
-		var item = new Class.Item(itemSD, itemCnt);
-		item.add(cnt, usedAndSize[0], usedAndSize[1], function(err, addBagUsed){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.addItem(addNum, function(err, addBagUsed){
 			if(err){
 				io.err("bag_limit");
 			}else{
