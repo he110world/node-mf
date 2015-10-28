@@ -14,7 +14,7 @@ var config = require('./config.json');
 
 	// init auth & handler
 	auth.init(config.auth);
-	handler.init(path.relative('../lib', './handlers'), config.handler);
+	handler.init(__dirname, config.handler);
 
 	// create server
 	http.createServer(handler.serve).listen(port, function(){

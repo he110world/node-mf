@@ -5,12 +5,16 @@
 			"^(GET|POST)$","/user/.+",
 			"^(GET|POST)$","/help/.+",
 			"^(GET|POST)$","/test/.+",
-			"^(GET|POST)$","/event/.+"
+			"^(GET|POST)$","/event/.+",
+			"GET","/public/.+"
 		]
 	},
 	"handler":{
 		"redis":[
 			"localhost:6379"
-		]
+		],
+		"static_url":"^/public/",
+		"static_dir":"./public",
+		"handler_dir":"./handlers"
 	}
 }
