@@ -41,11 +41,11 @@ exports.clear = function (io, udid) {
 
 			io.id = uid;
 			io.del('role');
-			io.del('item');
+			io.del('package');
 
 			io.smembers('heros', function(heros){
 				heros.forEach(function(key, i){
-					io.del('hero' + key);
+					io.del('hero.' + key);
 				});
 				io.del('heros');
 				io.del('index');
@@ -61,7 +61,12 @@ exports.clear = function (io, udid) {
 exports.view = function (io) {
 	var keysArr = [];
 	for (var i=1; i<arguments.length; i++) {
-		keysArr.push(arguments[i]);
+		var tmp = arguments[i].split('$');
+		for (var j=0; j<tmp.length; j++) {
+			if(tmp && tmp[j]){
+				keysArr.push(tmp[j]);
+			}
+		}
 	}
 	
 	var processed = 0;

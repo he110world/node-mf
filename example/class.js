@@ -6,14 +6,16 @@ exports.Role = function (role) {
 		this.uid = role.uid;
 		this.nick = role.nick || '';
 		this.exp = Number(role.exp) || 0;
-		this.bagSize = Number(role.bagSize) || 10;
-		this.bagUsed = Number(role.bagUsed) || 0;
+		this.packageLimit = Number(role.packageLimit) || 10;
+		this.packageUsed = Number(role.packageUsed) || 0;
+		this.heroLimit = Number(role.heroLimit) || 10;
 	} else { // role = uid
 		this.uid = role;
 		this.nick = '';
 		this.exp = 0;
-		this.bagSize = 10;
-		this.bagUsed = 0;
+		this.packageLimit = 10;
+		this.packageUsed = 0;
+		this.heroLimit = Number(role.heroLimit) || 10;
 	}
 
 };
@@ -28,15 +30,15 @@ exports.Item = function(id, cnt){
 	this.id = item === undefined ? undefined : id;
 	this.limit = item === undefined ? 0 : item.Limit;
 	this.cnt = Number(cnt) || 0;
-	this.bagUsed = 0;
-	this.bagSize = 0;
+	this.packageUsed = 0;
+	this.packageLimit = 0;
 };
 
-//更新背包信息
-exports.Item.prototype.setBagInfo = function(bagUsed, bagSize){
+//更新道具所在背包信息
+exports.Item.prototype.setPackageInfo = function(packageUsed, packageLimit){
 	var self = this;
-	self.bagUsed = Number(bagUsed);
-	self.bagSize = Number(bagSize);
+	self.packageUsed = Number(packageUsed);
+	self.packageLimit = Number(packageLimit);
 }
 
 
@@ -54,14 +56,14 @@ exports.Item.prototype.isEnough = function(needNum, cb){
 	}
 }
 
-//增加道具（可减），同时计算背包使用状况
+//增加道具（可减），同时计算所在背包使用状况
 exports.Item.prototype.addItem = function(addNum, cb) {
 	var self = this;
 	if(self.id === undefined){
 		cb(true, 'no_this_item');
 	}
 
-	console.log(self.id, "item:", self.cnt+'/'+ self.limit, "add:", addNum, "bag:", self.bagUsed+'/'+self.bagSize);
+	console.log(self.id, "item:", self.cnt+'/'+ self.limit, "add:", addNum, "package:", self.packageUsed+'/'+self.packageLimit);
 
 	//money & coin
 	if(self.id == 11000 || self.id == 11001){
@@ -79,11 +81,11 @@ exports.Item.prototype.addItem = function(addNum, cb) {
 	var used = Math.ceil(self.cnt / self.limit);
 	var addUsed = Math.ceil((self.cnt + Number(addNum)) / self.limit) - used;
 
-	if(self.bagUsed + Number(addUsed) <= self.bagSize){
+	if(self.packageUsed + Number(addUsed) <= self.packageLimit){
 		self.cnt += Number(addNum);
 		cb(false, Number(addUsed));
 	}else{
-		cb(true, 'bag_limit');
+		cb(true, 'package_limit');
 	}
 };
 //----------------------------------------------------
@@ -92,40 +94,46 @@ exports.Item.prototype.addItem = function(addNum, cb) {
 //Hero
 exports.Hero = function(hero){
 	if (typeof role === 'object') { 
-		this.id = hero.id;
-		this.type = hero.type;
-		this.level = hero.level;
-		this.exp = hero.exp;
+		this.id = Number(hero.id);
+		this.name = hero.name;
+		this.nick = hero.nick;
+		this.quality = Number(hero.quality);
+		this.type = Number(hero.type);
+		this.level = Number(hero.level);
+		this.exp = Number(hero.exp);
 		this.curJob = hero.curJob;
 		this.pastJob = hero.pastJob;
 
-		this.strength = hero.strength;
-		this.maxStrength = hero.maxStrength;
-		this.agile = hero.agile;
-		this.maxAgile = hero.maxAgile;
-		this.endurance = hero.endurance;
-		this.maxEndurance =hero.maxEndurance;
-		this.intelligence = hero.intelligence;
-		this.maxIntelligence = hero.maxIntelligence;
-		this.spirit = hero.spirit;
-		this.maxSpirit = hero.maxSpirit;
+		this.strength = Number(hero.strength);
+		this.maxStrength = Number(hero.maxStrength);
+		this.agile = Number(hero.agile);
+		this.maxAgile = Number(hero.maxAgile);
+		this.endurance = Number(hero.endurance);
+		this.maxEndurance = Number(hero.maxEndurance);
+		this.intelligence = Number(hero.intelligence);
+		this.maxIntelligence = Number(hero.maxIntelligence);
+		this.spirit = Number(hero.spirit);
+		this.maxSpirit = Number(hero.maxSpirit);
 
-		this.lucky = hero.lucky;
+		this.lucky = Number(hero.lucky);
 
-		this.jobSkill = hero.jobSkill;
-		this.heroSkill = hero.heroSkill;
+		this.jobSkill = Number(hero.jobSkill);
+		this.heroSkill = Number(hero.heroSkill);
 
-		this.weapon = hero.weapon;
-		this.helmet = hero.helmet;
-		this.armor = hero.armor;
-		this.amulet = hero.amulet;
+		this.weapon = Number(hero.weapon);
+		this.helmet = Number(hero.helmet);
+		this.armor = Number(hero.armor);
+		this.amulet = Number(hero.amulet);
 	}else{//new hero
 		var heroSD = sd.hero[hero];
 		if(heroSD === undefined){
 			return;
 		}
 
-		this.id = hero;
+		this.id = Number(hero);
+		this.name = heroSD.Name;
+		this.nick = '';
+		this.quality = Number(heroSD.Quality);
 		this.type = Number(heroSD.Type);
 		this.level = 1;
 		this.exp = 0;

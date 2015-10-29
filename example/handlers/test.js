@@ -2,7 +2,6 @@ var web = require('../../lib/web');
 var share = require('../../lib/share')
 var sd  =require('../staticData.json');
 var Class = require('../class');
-var item = require('./item');
 
 exports.helloserver = function (io) {
 	io.end('Hello Client!');	// text: Hello Client!
@@ -38,16 +37,16 @@ exports.broadcastjson = function(io, evt, obj) {
 
 exports.addCoin = function(io, addNum){
 	var itemId = 11001
-	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+	io.hget('package', itemId).hmget('role', ['packageUsed','packageLimit'], function(itemCnt, usedAndLimit){
 		var item = new Class.Item(itemId, itemCnt);
-		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.setPackageInfo(usedAndLimit[0], usedAndLimit[1]);
 
-		item.addItem(addNum, function(err, addBagUsed){
+		item.addItem(addNum, function(err, data){
 			if(err){
-				io.err("bag_limit");
+				io.err(data);
 			}else{
-				io.hset("item", item.id, item.cnt);
-				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.hset("package", item.id, item.cnt);
+				io.hincrby('role', 'packageUsed', data);
 				io.end();
 			}
 		});
@@ -56,15 +55,15 @@ exports.addCoin = function(io, addNum){
 exports.addMoney = function(io, addNum){
 	var itemId = 11000
 
-	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+	io.hget('package', itemId).hmget('role', ['packageUsed','packageLimit'], function(itemCnt, usedAndLimit){
 		var item = new Class.Item(itemId, itemCnt);
-		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
-		item.addItem(addNum, function(err, addBagUsed){
+		item.setPackageInfo(usedAndLimit[0], usedAndLimit[1]);
+		item.addItem(addNum, function(err, data){
 			if(err){
-				io.err("bag_limit");
+				io.err(data);
 			}else{
-				io.hset("item", item.id, item.cnt);
-				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.hset("package", item.id, item.cnt);
+				io.hincrby('role', 'packageUsed', data);
 				io.end();
 			}
 		});
@@ -82,16 +81,16 @@ exports.addRandomItem = function(io){
 	var itemId = 11000 + share.rand(2, length - 1);
 	var cnt = share.rand(1, 999);
 
-	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+	io.hget('package', itemId).hmget('role', ['packageUsed','packageLimit'], function(itemCnt, usedAndLimit){
 		var item = new Class.Item(itemId, itemCnt);
-		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.setPackageInfo(usedAndLimit[0], usedAndLimit[1]);
 
-		item.addItem(cnt, function(err, addBagUsed){
+		item.addItem(cnt, function(err, data){
 			if(err){
-				io.err("bag_limit");
+				io.err(data);
 			}else{
-				io.hset("item", item.id, item.cnt);
-				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.hset("package", item.id, item.cnt);
+				io.hincrby('role', 'packageUsed', data);
 				io.end();
 			}
 		});
@@ -99,15 +98,15 @@ exports.addRandomItem = function(io){
 };
 
 exports.addItem = function(io, itemId, addNum){
-	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+	io.hget('package', itemId).hmget('role', ['packageUsed','packageLimit'], function(itemCnt, usedAndLimit){
 		var item = new Class.Item(itemId, itemCnt);
-		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
-		item.addItem(addNum, function(err, addBagUsed){
+		item.setPackageInfo(usedAndLimit[0], usedAndLimit[1]);
+		item.addItem(addNum, function(err, data){
 			if(err){
-				io.err("bag_limit");
+				io.err(data);
 			}else{
-				io.hset("item", item.id, item.cnt);
-				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.hset("package", item.id, item.cnt);
+				io.hincrby('role', 'packageUsed', data);
 				io.end();
 			}
 		});
