@@ -1,5 +1,5 @@
-share = require('../../lib/share')
-Class = require('../class');
+var share = require('../../lib/share')
+var Class = require('../class');
 
 exports.login = function (io, udid){
 	console.log('login udid:',udid)
@@ -38,8 +38,20 @@ exports.clear = function (io, udid) {
 		if (uid) {
 			io.hdel('udid->uid', udid);
 			io.hdel('uid->ids', uid);
+
+			io.id = uid;
 			io.del('role');
-			io.end();
+			io.del('item');
+
+			io.smembers('heros', function(heros){
+				heros.forEach(function(key, i){
+					io.del('hero' + key);
+				});
+				io.del('heros');
+				io.del('index');
+				io.end();
+			});
+			
 		} else {
 			io.err('invalid_udid');
 		}

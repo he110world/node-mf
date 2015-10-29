@@ -1,4 +1,8 @@
 var web = require('../../lib/web');
+var share = require('../../lib/share')
+var sd  =require('../staticData.json');
+var Class = require('../class');
+var item = require('./item');
 
 exports.helloserver = function (io) {
 	io.end('Hello Client!');	// text: Hello Client!
@@ -32,10 +36,81 @@ exports.broadcastjson = function(io, evt, obj) {
 	io.end();
 };
 
-exports.addCoin = function(io, add){
-	io.hincrby('role', 'coin', add, function(coin){
+exports.addCoin = function(io, addNum){
+	var itemId = 11001
+	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+
+		item.addItem(addNum, function(err, addBagUsed){
+			if(err){
+				io.err("bag_limit");
+			}else{
+				io.hset("item", item.id, item.cnt);
+				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.end();
+			}
+		});
+	});
+};
+exports.addMoney = function(io, addNum){
+	var itemId = 11000
+
+	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.addItem(addNum, function(err, addBagUsed){
+			if(err){
+				io.err("bag_limit");
+			}else{
+				io.hset("item", item.id, item.cnt);
+				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.end();
+			}
+		});
+	});
+};
+exports.addExp = function(io, add){
+	io.hincrby('role', 'exp', add, function(coin){
 		//io.hset('role', 'coin', coin);
 		io.end();
+	});
+};
+
+exports.addRandomItem = function(io){
+	var length = share.length(sd.item);
+	var itemId = 11000 + share.rand(2, length - 1);
+	var cnt = share.rand(1, 999);
+
+	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+
+		item.addItem(cnt, function(err, addBagUsed){
+			if(err){
+				io.err("bag_limit");
+			}else{
+				io.hset("item", item.id, item.cnt);
+				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.end();
+			}
+		});
+	});
+};
+
+exports.addItem = function(io, itemId, addNum){
+	io.hget('item', itemId).hmget('role', ['bagUsed','bagSize'], function(itemCnt, usedAndSize){
+		var item = new Class.Item(itemId, itemCnt);
+		item.setBagInfo(usedAndSize[0], usedAndSize[1]);
+		item.addItem(addNum, function(err, addBagUsed){
+			if(err){
+				io.err("bag_limit");
+			}else{
+				io.hset("item", item.id, item.cnt);
+				io.hincrby('role', 'bagUsed', addBagUsed);
+				io.end();
+			}
+		});
 	});
 };
 
