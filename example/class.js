@@ -87,3 +87,81 @@ exports.Item.prototype.addItem = function(addNum, cb) {
 	}
 };
 //----------------------------------------------------
+
+//----------------------------------------------------
+//Hero
+exports.Hero = function(hero){
+	if (typeof role === 'object') { 
+		this.id = hero.id;
+		this.type = hero.type;
+		this.level = hero.level;
+		this.exp = hero.exp;
+		this.curJob = hero.curJob;
+		this.pastJob = hero.pastJob;
+
+		this.strength = hero.strength;
+		this.maxStrength = hero.maxStrength;
+		this.agile = hero.agile;
+		this.maxAgile = hero.maxAgile;
+		this.endurance = hero.endurance;
+		this.maxEndurance =hero.maxEndurance;
+		this.intelligence = hero.intelligence;
+		this.maxIntelligence = hero.maxIntelligence;
+		this.spirit = hero.spirit;
+		this.maxSpirit = hero.maxSpirit;
+
+		this.lucky = hero.lucky;
+
+		this.jobSkill = hero.jobSkill;
+		this.heroSkill = hero.heroSkill;
+
+		this.weapon = hero.weapon;
+		this.helmet = hero.helmet;
+		this.armor = hero.armor;
+		this.amulet = hero.amulet;
+	}else{//new hero
+		var heroSD = sd.hero[hero];
+		if(heroSD === undefined){
+			return;
+		}
+
+		this.id = hero;
+		this.type = Number(heroSD.Type);
+		this.level = 1;
+		this.exp = 0;
+		this.curJob = Number(heroSD.CurrentJob);
+		this.pastJob = heroSD.PastJob == 0 ? '': heroSD.PastJob;
+
+		var tmp = heroSD.Strength.split('$');
+		this.strength = Number(tmp[0]);
+		this.maxStrength = Number(tmp[1]);
+		
+		tmp = heroSD.Agile.split('$');
+		this.agile = Number(tmp[0]);
+		this.maxAgile = Number(tmp[1]);
+
+		tmp = heroSD.Endurance.split('$');
+		this.endurance = Number(tmp[0]);
+		this.maxEndurance = Number(tmp[1]);
+
+		tmp = heroSD.Intelligence.split('$');
+		this.intelligence = Number(tmp[0]);
+		this.maxIntelligence = Number(tmp[1]);
+
+		tmp = heroSD.Spirit.split('$');
+		this.spirit = Number(tmp[0]);
+		this.maxSpirit = Number(tmp[1]);
+
+		this.lucky = Number(heroSD.Lucky);
+
+		this.jobSkill = Number(heroSD.JobSkill);
+		this.heroSkill = Number(heroSD.HeroSkill);
+
+		this.weapon = Number(heroSD.Weapon);
+		this.helmet = Number(heroSD.Helmet);
+		this.armor = Number(heroSD.Armor);
+		this.amulet = Number(heroSD.Amulet);
+	}
+};
+
+//----------------------------------------------------

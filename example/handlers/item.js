@@ -19,7 +19,7 @@ exports.expandBag = function(io){
 						io.err(data);
 					}else{
 
-						if(itemCnt - cost <= 0){
+						if(item.cnt == 0){
 							io.hdel('item', 11000);
 						}else{
 							io.hincrby('item', 11000, -cost);
@@ -33,6 +33,5 @@ exports.expandBag = function(io){
 				});
 			}
 		});
-
 	});
 };
