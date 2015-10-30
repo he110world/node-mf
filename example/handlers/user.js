@@ -42,15 +42,24 @@ exports.clear = function (io, udid) {
 			io.id = uid;
 			io.del('role');
 			io.del('package');
-
-			io.smembers('heros', function(heros){
-				heros.forEach(function(key, i){
-					io.del('hero.' + key);
+			io.del('techs');
+			io.del('rtechs');
+			io.smembers('buildings', function(buildings){
+				buildings.forEach(function(key, i){
+					io.del('building.' + key);
 				});
-				io.del('heros');
-				io.del('index');
-				io.end();
+				io.del('buildings');
+				io.smembers('heros', function(heros){
+					heros.forEach(function(key, i){
+						io.del('hero.' + key);
+					});
+					io.del('heros');
+					io.del('index');
+					io.end();
+				});
 			});
+
+			
 			
 		} else {
 			io.err('invalid_udid');
@@ -101,3 +110,7 @@ exports.view = function (io) {
 	});
 	
 };
+
+exports.time = function(io){
+	io.end(Date.now());
+}

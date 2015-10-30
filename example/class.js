@@ -173,3 +173,71 @@ exports.Hero = function(hero){
 };
 
 //----------------------------------------------------
+
+//----------------------------------------------------
+//Building
+exports.Building = function(building){
+	if (typeof building === 'object') {
+		this.id = Number(building.id);
+		this.columnLimit = Number(building.columnNum);
+		this.columnExpandLimit = Number(building.columnLimit);
+		this.columnUsed = Number(building.columnUsed);
+		this.workers = building.workers;
+		//this.column = building.column
+	} else { //new building
+		var buildingSD = sd.building[building];
+		if(buildingSD === undefined){
+			return;
+		}
+
+		this.id = Number(building);
+		var tmp = buildingSD.Column.split('$');
+		this.columnLimit = Number(tmp[0]);
+		this.columnExpandLimit = Number(tmp[1]);
+		this.columnUsed = 0;
+		this.workers = '';
+		//var column = {};
+		//this.column = JSON.stringify(column);
+	}
+};
+
+exports.Building.prototype.produce = function(formula, cb) {
+	var self = this;
+	var formulaSD = sd.formula[formula];
+	if(formulaSD == undefined){
+		cb(true, 'no_this_formula');
+		return;
+	}
+
+	if(self.columnUsed < self.columnLimit){
+		var column = new Column(this);
+		++this.columnUsed;
+		column.formula = formula
+		column.startTime = Date.now();
+		column.leftTime = formulaSD.Time;
+		cb(false, column);
+	}else{
+		cb(true, 'column_full');
+	}
+}
+
+
+exports.Column = function(building, column){
+	if(column === undefined){
+		this.id = Number(building.id);
+		this.index = Number(building.columnUsed);
+		this.formula = '';
+	}else{
+		this.id = Number(column.id);
+		this.index = Number(column.index);
+		this.formula = Number(column.formula);
+		this.startTime = Number(column.startTime);
+		this.leftTime = Number(column.leftTime);
+	}
+};
+
+//----------------------------------------------------
+
+
+
+
