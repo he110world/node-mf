@@ -46,21 +46,27 @@ exports.clear = function (io, udid) {
 			io.del('rtechs');
 			io.smembers('buildings', function(buildings){
 				buildings.forEach(function(key, i){
-					io.del('building.' + key);
-				});
-				io.del('buildings');
-				io.smembers('heros', function(heros){
-					heros.forEach(function(key, i){
-						io.del('hero.' + key);
+					var cNum = io.hget('building.' + key, 'columnLimit');
+					var columnName = [];
+					for(var i = 0; i < cNum; i++){
+						columnName.push('.column.' + i);
+					}
+					columnName.forEach(function(key, i){
+						io.del('building.' + key + columnName[i]);
 					});
-					io.del('heros');
-					io.del('index');
-					io.end();
+					io.del('building.' + key);
+					
+					io.del('buildings');
+					io.smembers('heros', function(heros){
+						heros.forEach(function(key, i){
+							io.del('hero.' + key);
+						});
+						io.del('heros');
+						io.del('index');
+						io.end();
+					});
 				});
 			});
-
-			
-			
 		} else {
 			io.err('invalid_udid');
 		}

@@ -181,7 +181,8 @@ exports.Building = function(building){
 		this.id = Number(building.id);
 		this.columnLimit = Number(building.columnNum);
 		this.columnExpandLimit = Number(building.columnLimit);
-		this.columnUsed = Number(building.columnUsed);
+		this.columnUsed = building.columnUsed;
+		this.columnIndex = Number(building.columnIndex);
 		this.workers = building.workers;
 		//this.column = building.column
 	} else { //new building
@@ -194,7 +195,8 @@ exports.Building = function(building){
 		var tmp = buildingSD.Column.split('$');
 		this.columnLimit = Number(tmp[0]);
 		this.columnExpandLimit = Number(tmp[1]);
-		this.columnUsed = 0;
+		this.columnUsed = '';
+		this.columnIndex = 0;
 		this.workers = '';
 		//var column = {};
 		//this.column = JSON.stringify(column);
@@ -209,23 +211,56 @@ exports.Building.prototype.produce = function(formula, cb) {
 		return;
 	}
 
-	if(self.columnUsed < self.columnLimit){
+	var columnUsed = self.columnUsed.split('$');
+
+	if(self.columnUsed - 1 < self.columnLimit){
 		var column = new Column(this);
-		++this.columnUsed;
+		self.columnUsed += (self.columnIndex + '$');
+		++self.columnIndex;
 		column.formula = formula
-		column.startTime = Date.now();
-		column.leftTime = formulaSD.Time;
-		cb(false, column);
+		column.leftTime = Number(formulaSD.Time * 1000);
+		self.settle(column, function(err,data){
+			if(err){
+				cb(true, data);
+			}else{
+				cb(false, column);
+			}
+		});
 	}else{
 		cb(true, 'column_full');
 	}
-}
+};
+
+exports.Building.prototype.settle = function(column, cb){
+	var self = this;
+	if(column.id != self.id){
+		cb(true, 'column_not_exist');
+		return;
+	}
+
+
+	if(column.startTime){
+		var dt = Date.now() - column.startTime;
+		column.leftTime -= dt;
+	}
+
+	if(column.leftTime <= 0){
+		self.columnUsed.replace(column.index + '$', '');
+	}
+
+	if(self.workers){
+		column.startTime = Date.now();
+	}else{
+		column.startTime = undefined;
+	}
+	cb(false, column);
+};
 
 
 exports.Column = function(building, column){
 	if(column === undefined){
 		this.id = Number(building.id);
-		this.index = Number(building.columnUsed);
+		this.index = Number(building.columnIndex);
 		this.formula = '';
 	}else{
 		this.id = Number(column.id);
