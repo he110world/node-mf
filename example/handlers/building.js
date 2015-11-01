@@ -205,5 +205,49 @@ exports.settle = function(io, buildingId, columnIndex){
 	});
 };
 
+exports.expandColumn = function(io, buildingId){
+	io.hmget('building.' + buildingId, ['columnLimit', 'columnExpandLimit']).hmget('role', ['packageUsed','packageLimit','heroLimit']).hget('package', 11000, function(columnLimits, limits, money){
+		if(columnLimits[0] === undefined || columnLimits[1] === undefined){
+			io.err('no_this_building');
+			return;
+		}
+
+		if(columnLimits[1] - columnLimits[0] <= 0){
+			io.err('column_expandLimit');
+			return;
+		}
+
+		var money = new Class.Item(11000, money);
+		var packageUsed = limits[0];
+		var packageLimit = limits[1];
+		var heroLimit = limits[2];
+		money.setPackageInfo(packageUsed,packageLimit);
+
+		var cost = (Number(heroLimit) - 10) * 50 + 100;
+		money.isEnough(cost, function(err,data){
+			if(err){
+				io.err(data);
+			}else{
+				money.addItem(-cost, function(err, data){
+					if(err){
+						io.err(data);
+					}else{
+
+						if(money.cnt == 0){
+							io.hdel('package', 11000);
+						}else{
+							io.hincrby('package', 11000, -cost);
+						}
+						io.hincrby('role', 'packageUsed', data);
+
+						io.hincrby('building.' + buildingId, 'columnLimit', 1);
+						io.end();
+					}
+				});
+			}
+		});
+	});
+}
+
 
 
