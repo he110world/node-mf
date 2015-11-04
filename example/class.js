@@ -125,6 +125,8 @@ exports.Hero = function(hero){
 		this.helmet = Number(hero.helmet);
 		this.armor = Number(hero.armor);
 		this.amulet = Number(hero.amulet);
+
+		this.work = Number(hero.work);
 	}else{//new hero
 		var heroSD = sd.hero[hero];
 		if(heroSD === undefined){
@@ -170,6 +172,7 @@ exports.Hero = function(hero){
 		this.helmet = Number(heroSD.Helmet);
 		this.armor = Number(heroSD.Armor);
 		this.amulet = Number(heroSD.Amulet);
+		this.work = 0;
 	}
 };
 
@@ -213,7 +216,7 @@ exports.Building.prototype.addWorker = function(heroIndex, cb) {
 	}
 }
 
-exports.Building.prototype.removeWorker = function(workerIndex, cb) {
+exports.Building.prototype.removeWorker = function(heroIndex, cb) {
 	var self = this;
 
 	if(self.workers == '' || self.workers == undefined){
@@ -221,10 +224,10 @@ exports.Building.prototype.removeWorker = function(workerIndex, cb) {
 		cb(false);
 	}else{
 		var workerArr = self.workers.split('$')
-		if(workerIndex < workerArr.length){
+		if(workerArr.indexOf(heroIndex) != -1){
 			self.workers = '';
 			for(var i = 0; i < workerArr.length; i++){
-				if(i != workerIndex){
+				if(workerArr[i] != heroIndex){
 					self.workers += workerArr[i];
 					if(i != workerArr.length - 1){
 						self.workers += '$';
@@ -233,7 +236,7 @@ exports.Building.prototype.removeWorker = function(workerIndex, cb) {
 			}
 			cb(false);
 		}else{
-			cb(true, 'workerIndex_err');
+			cb(true, 'no_this_worker');
 		}
 		
 	}

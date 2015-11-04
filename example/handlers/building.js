@@ -168,6 +168,7 @@ exports.addWorker = function(io, buildingId, heroIndex){
 						io.hmset('building.' + buildingId + '.column', columnDB);
 					}
 					io.hmset('building.' + buildingId, building);
+					io.hset('hero.' + heroIndex, 'work', building.id);
 					io.end();
 				});
 			}
@@ -175,7 +176,7 @@ exports.addWorker = function(io, buildingId, heroIndex){
 	});
 };
 
-exports.removeWorker = function(io, buildingId, workerIndex){
+exports.removeWorker = function(io, buildingId, heroIndex){
 	io.hgetall('building.' + buildingId, function(buildingDB){
 		if(!buildingDB){
 			io.err('no_this_building');
@@ -183,7 +184,7 @@ exports.removeWorker = function(io, buildingId, workerIndex){
 		}
 
 		var building = new Class.Building(buildingDB);
-		building.removeWorker(workerIndex, function(err, data){
+		building.removeWorker(heroIndex, function(err, data){
 			if(err){
 				io.err(data);
 			}else{
@@ -199,6 +200,8 @@ exports.removeWorker = function(io, buildingId, workerIndex){
 					}
 
 					io.hmset('building.' + buildingId, building);
+					io.hset('hero.' + heroIndex, 'work', 0);
+					
 					io.end();
 				});
 			}

@@ -45,6 +45,7 @@ exports.clear = function (io, udid) {
 			keys.push('package');
 			keys.push('techs');
 			keys.push('rtechs');
+			keys.push('mission');
 			io.smembers('buildings', function(buildings){
 				buildings.forEach(function(key, i){
 					keys.push('building.' + key + '.column');
