@@ -40,31 +40,28 @@ exports.clear = function (io, udid) {
 			io.hdel('uid->ids', uid);
 
 			io.id = uid;
-			io.del('role');
-			io.del('package');
-			io.del('techs');
-			io.del('rtechs');
+			var keys = [];
+			keys.push('role');
+			keys.push('package');
+			keys.push('techs');
+			keys.push('rtechs');
 			io.smembers('buildings', function(buildings){
 				buildings.forEach(function(key, i){
-					var cNum = io.hget('building.' + key, 'columnLimit');
-					var columnName = [];
-					for(var i = 0; i < cNum; i++){
-						columnName.push('.column.' + i);
-					}
-					columnName.forEach(function(key, i){
-						io.del('building.' + key + columnName[i]);
+					keys.push('building.' + key + '.column');
+					keys.push('building.' + key);
+				});
+				keys.push('buildings');
+				io.smembers('heros', function(heros){
+					heros.forEach(function(key, i){
+						keys.push('hero.' + key);
 					});
-					io.del('building.' + key);
+					keys.push('heros');
+					keys.push('index');
 					
-					io.del('buildings');
-					io.smembers('heros', function(heros){
-						heros.forEach(function(key, i){
-							io.del('hero.' + key);
-						});
-						io.del('heros');
-						io.del('index');
-						io.end();
-					});
+					for(var i = 0; i < keys.length; i++){
+						io.del(keys[i]);
+					}
+					io.end();
 				});
 			});
 		} else {

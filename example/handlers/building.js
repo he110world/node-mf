@@ -42,15 +42,22 @@ exports.build = function(io, id){
 	});
 };
 
-exports.produce = function(io, buildingId, formula){
-	if(!sd.building.Formula.containsKey(formula)){
+exports.produce = function(io, buildingId, formulaId){
+	//console.log(sd.building[buildingId].Formula);
+	var buildingSD = sd.building[buildingId];
+	if(buildingSD === undefined){
+		io.err('no_this_building');
+		return;
+	}
+
+	if( buildingSD.Formula.indexOf(formulaId) == -1){
 		io.err('no_this_formula');
 		return;
 	}
 
-	var tech = sd.formula.ReqTech;
+	var tech = sd.formula[formulaId].ReqTech;
 	io.sismember('techs', tech).sismember('buildings', buildingId, function(ismember1, ismember2){
-		if(ismember2){
+		if(!ismember2){
 			io.err('building_not_exist');
 			return;
 		}
@@ -60,7 +67,7 @@ exports.produce = function(io, buildingId, formula){
 			return;
 		}
 
-		var formulaSD = sd.formula[formula];
+		var formulaSD = sd.formula[formulaId];
 		if(formulaSD == undefined){
 			io.err('no_this_formula');
 			return;
@@ -107,7 +114,7 @@ exports.produce = function(io, buildingId, formula){
 			if(isEnough){
 				io.hgetall('building.' + buildingId, function(buildingDB){
 					var building = new Class.Building(buildingDB);
-					building.produce(formula, function(err, data){
+					building.produce(formulaId, function(err, data){
 						if(err){
 							io.err(data);
 						}else{
@@ -120,8 +127,8 @@ exports.produce = function(io, buildingId, formula){
 							});
 							io.hincrby('role', 'packageUsed', packageUsedAdd);
 
-							io.hmset('building.' + buildingId, buildingDB);
-							io.hmset('building.' + buildingId + '.column.' + data.index, data);
+							io.hmset('building.' + buildingId, building);
+							io.hset('building.' + buildingId + '.column', data.id, data.time);
 							io.end();
 						}
 					});
@@ -133,26 +140,94 @@ exports.produce = function(io, buildingId, formula){
 	});
 };
 
-exports.settle = function(io, buildingId, columnIndex){
-	io.hgetall('building.' + buildingId).hgetall('building.' + buildingId + '.column.' + columnIndex, function(buildingDB,columnDB){
+exports.addWorker = function(io, buildingId, heroIndex){
+	io.hgetall('hero.' + heroIndex).hgetall('building.' + buildingId, function(heroDB, buildingDB){
+		if(!heroDB){
+			io.err('no_this_hero');
+			return;
+		}
+
 		if(!buildingDB){
 			io.err('no_this_building');
 			return;
 		}
 
-		if(!columnDB){
+		var building = new Class.Building(buildingDB);
+		building.addWorker(heroIndex, function(err, data){
+			if(err){
+				io.err(data);
+			}else{
+				io.hgetall('building.' + buildingId + '.column', function(columnDB){
+					console.log('column', columnDB);
+					if(columnDB){
+						Object.keys(columnDB).forEach(function(key, i){
+							building.settle(key, columnDB[key], function(err,data){
+								columnDB[key] = data.time;
+							});
+						});
+						io.hmset('building.' + buildingId + '.column', columnDB);
+					}
+					io.hmset('building.' + buildingId, building);
+					io.end();
+				});
+			}
+		});
+	});
+};
+
+exports.removeWorker = function(io, buildingId, workerIndex){
+	io.hgetall('building.' + buildingId, function(buildingDB){
+		if(!buildingDB){
+			io.err('no_this_building');
+			return;
+		}
+
+		var building = new Class.Building(buildingDB);
+		building.removeWorker(workerIndex, function(err, data){
+			if(err){
+				io.err(data);
+			}else{
+				io.hgetall('building.' + buildingId + '.column', function(columnDB){
+					console.log('column', columnDB);
+					if(columnDB){
+						Object.keys(columnDB).forEach(function(key, i){
+							building.settle(key, columnDB[key], function(err,data){
+								columnDB[key] = data.time;
+							});
+						});
+						io.hmset('building.' + buildingId + '.column', columnDB);
+					}
+
+					io.hmset('building.' + buildingId, building);
+					io.end();
+				});
+			}
+		});
+	});
+};
+
+exports.settle = function(io, buildingId, columnId){
+	io.hgetall('building.' + buildingId).hget('building.' + buildingId + '.column', columnId, function(buildingDB, timeStr){
+		if(!buildingDB){
+			io.err('no_this_building');
+			return;
+		}
+
+		if(!timeStr){
 			io.err('no_this_column');
 			return;
 		}
 
 		var building = new Class.Building(buildingDB);
-		var column = new Class.Column(building, columnDB);
-		building.settle(column, function(err,data){
+		//var column = new Class.Column(building, columnDB);
+		building.settle(columnId, timeStr, function(err, data){
 			if(err){
 				io.err(data);
 			}else{
-				if(column.leftTime <= 0){//完成
-					var items = sd.formula[column.formula].Item.split('$');
+				if(data.time.indexOf('$0') != -1){//完成
+					var formulaId = data.id.split('$')[0];
+
+					var items = sd.formula[formulaId].Item.split('$');
 					var itemIds = [];
 					var itemNums = [];
 					for(var i = 0; i < items.length; i++){
@@ -183,12 +258,14 @@ exports.settle = function(io, buildingId, columnIndex){
 						}
 
 						if(success){
-							itemCs.forEach(function(key, i){
+							for(var i = 0; i < itemCs.length; i++){
 								io.hset("package", itemCs[i].id, itemCs[i].cnt);
-								io.hincrby('role', 'packageUsed', addPackageUsed);
-							});
+							}
+							io.hincrby('role', 'packageUsed', addPackageUsed);
+
+							--building.columnUsed;
 							io.hmset('building.' + buildingId, building);
-							io.del('building.' + buildingId + '.column.' + column.index);
+							io.hdel('building.' + buildingId + '.column', columnId);
 							io.end();
 						}else{
 							io.err('package_limit');
@@ -196,7 +273,7 @@ exports.settle = function(io, buildingId, columnIndex){
 					});
 				}else{//未完成，更新数据
 					io.hmset('building.' + buildingId, building);
-					io.hmset('building.' + buildingId + '.column.' + column.index, column);
+					io.hmset('building.' + buildingId + '.column', columnId, timeStr);
 					io.end();
 				}
 			}
@@ -207,11 +284,13 @@ exports.settle = function(io, buildingId, columnIndex){
 
 exports.expandColumn = function(io, buildingId){
 	io.hmget('building.' + buildingId, ['columnLimit', 'columnExpandLimit']).hmget('role', ['packageUsed','packageLimit','heroLimit']).hget('package', 11000, function(columnLimits, limits, money){
-		if(columnLimits[0] === undefined || columnLimits[1] === undefined){
+		if(!columnLimits[0] || !columnLimits[1]){
 			io.err('no_this_building');
 			return;
 		}
 
+
+		console.log(columnLimits[1], columnLimits[0], columnLimits[1] - columnLimits[0]);
 		if(columnLimits[1] - columnLimits[0] <= 0){
 			io.err('column_expandLimit');
 			return;
@@ -223,7 +302,7 @@ exports.expandColumn = function(io, buildingId){
 		var heroLimit = limits[2];
 		money.setPackageInfo(packageUsed,packageLimit);
 
-		var cost = (Number(heroLimit) - 10) * 50 + 100;
+		var cost = 100;
 		money.isEnough(cost, function(err,data){
 			if(err){
 				io.err(data);
@@ -247,7 +326,7 @@ exports.expandColumn = function(io, buildingId){
 			}
 		});
 	});
-}
+};
 
 
 

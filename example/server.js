@@ -3,6 +3,7 @@ var path = require('path');
 var auth = require('../lib/auth');
 var handler = require('../lib/handler');
 var config = require('./config.json');
+var share = require('../lib/share');
 
 (function initServer () {
 	// get server port

@@ -1,4 +1,5 @@
 var sd  =require('./staticData.json');
+var common = require('./common');
 //----------------------------------------------------
 //Role
 exports.Role = function (role) {
@@ -179,12 +180,12 @@ exports.Hero = function(hero){
 exports.Building = function(building){
 	if (typeof building === 'object') {
 		this.id = Number(building.id);
-		this.columnLimit = Number(building.columnNum);
-		this.columnExpandLimit = Number(building.columnLimit);
-		this.columnUsed = building.columnUsed;
+		this.columnLimit = Number(building.columnLimit);
+		this.columnExpandLimit = Number(building.columnExpandLimit);
+		this.columnUsed = Number(building.columnUsed);
 		this.columnIndex = Number(building.columnIndex);
 		this.workers = building.workers;
-		//this.column = building.column
+		this.workerLimit = Number(building.workerLimit);
 	} else { //new building
 		var buildingSD = sd.building[building];
 		if(buildingSD === undefined){
@@ -195,83 +196,92 @@ exports.Building = function(building){
 		var tmp = buildingSD.Column.split('$');
 		this.columnLimit = Number(tmp[0]);
 		this.columnExpandLimit = Number(tmp[1]);
-		this.columnUsed = '';
+		this.columnUsed = 0;
 		this.columnIndex = 0;
 		this.workers = '';
-		//var column = {};
-		//this.column = JSON.stringify(column);
+		this.workerLimit = 1;
 	}
 };
 
-exports.Building.prototype.produce = function(formula, cb) {
+exports.Building.prototype.addWorker = function(heroIndex, cb) {
 	var self = this;
-	var formulaSD = sd.formula[formula];
+	if(self.workers == '' || self.workers == undefined){
+		self.workers = heroIndex;
+		cb(false);
+	}else{
+		cb(true, 'worker_limit');
+	}
+}
+
+exports.Building.prototype.removeWorker = function(workerIndex, cb) {
+	var self = this;
+
+	if(self.workers == '' || self.workers == undefined){
+		self.workers = ''
+		cb(false);
+	}else{
+		var workerArr = self.workers.split('$')
+		if(workerIndex < workerArr.length){
+			self.workers = '';
+			for(var i = 0; i < workerArr.length; i++){
+				if(i != workerIndex){
+					self.workers += workerArr[i];
+					if(i != workerArr.length - 1){
+						self.workers += '$';
+					}
+				}
+			}
+			cb(false);
+		}else{
+			cb(true, 'workerIndex_err');
+		}
+		
+	}
+}
+
+exports.Building.prototype.produce = function(formulaId, cb) {
+	var self = this;
+	var formulaSD = sd.formula[formulaId];
 	if(formulaSD == undefined){
 		cb(true, 'no_this_formula');
 		return;
 	}
-
-	var columnUsed = self.columnUsed.split('$');
-
-	if(self.columnUsed - 1 < self.columnLimit){
-		var column = new Column(this);
-		self.columnUsed += (self.columnIndex + '$');
-		++self.columnIndex;
-		column.formula = formula
-		column.leftTime = Number(formulaSD.Time * 1000);
-		self.settle(column, function(err,data){
-			if(err){
-				cb(true, data);
-			}else{
-				cb(false, column);
-			}
+	if(self.columnUsed - self.columnLimit < 0){
+		var leftTime = Number(formulaSD.Time * 1000);
+		self.settle(formulaId + '$' + self.columnIndex, '$' + leftTime, function(err, data){
+			++self.columnUsed;
+			++self.columnIndex;
+			cb(err, data);
 		});
 	}else{
 		cb(true, 'column_full');
 	}
 };
 
-exports.Building.prototype.settle = function(column, cb){
+exports.Building.prototype.settle = function(id, timeStr, cb){
 	var self = this;
-	if(column.id != self.id){
-		cb(true, 'column_not_exist');
-		return;
+	var time = common.timeFormat(timeStr);
+	//console.log('settle', timeStr, time);
+
+	if(time.start){
+		var dt = Date.now() - time.start;
+		time.left -= dt;
 	}
 
-
-	if(column.startTime){
-		var dt = Date.now() - column.startTime;
-		column.leftTime -= dt;
-	}
-
-	if(column.leftTime <= 0){
-		self.columnUsed.replace(column.index + '$', '');
+	if(time.left <= 0){
+		time.left = 0;
+		//--self.columnUsed;
 	}
 
 	if(self.workers){
-		column.startTime = Date.now();
+		time.start = Date.now();
 	}else{
-		column.startTime = undefined;
+		time.start = '';
 	}
-	cb(false, column);
+	var settle = {id:id, time:time.start + '$' + time.left}
+	cb(false, settle);
 };
 
-
-exports.Column = function(building, column){
-	if(column === undefined){
-		this.id = Number(building.id);
-		this.index = Number(building.columnIndex);
-		this.formula = '';
-	}else{
-		this.id = Number(column.id);
-		this.index = Number(column.index);
-		this.formula = Number(column.formula);
-		this.startTime = Number(column.startTime);
-		this.leftTime = Number(column.leftTime);
-	}
-};
-
-//----------------------------------------------------
 
 
 
